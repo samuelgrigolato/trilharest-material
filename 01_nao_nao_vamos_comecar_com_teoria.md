@@ -110,3 +110,244 @@ $ gradle idea
 
 PS: substitua `idea` por `eclipse` se aplicável. Daqui em diante essa observação não
 será mais repetida.
+
+Agora já podemos abrir o projeto na IDE, como um projeto existente.
+
+Nota: uma outra opção, ao invés de usar o plugin `Gradle` do IDE, é usar a opção do
+próprio IDE que permite importar um projeto `Gradle/Maven`. As duas opções são válidas
+e possuem benefícios similares, a única coisa que não é recomendada é `criar` um projeto
+de dentro do IDE e usar as funcionalidades de manutenção de `class path` e afins
+disponíveis no IDE. O motivo disso é evitar que seu processo de desenvolvimento fique
+dependente de um IDE específico, ao invés de deixar cada desenvolvedor escolher a
+ferramenta que mais lhe agrada.
+
+Note que dessa maneira não temos nem um `source folder` atrelado ao projeto. Vamos
+resolver isso executando os seguintes comandos no diretório do projeto:
+
+```
+$ mkdir -p src/main/java
+$ gradle idea
+```
+
+Agora iremos adicionar o `Spring Boot` como dependência no nosso projeto. Para isso,
+edite o arquivo `build.gradle` e adicione a seguinte linha na seção de dependências:
+
+```groovy
+dependencies {
+    [...]
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '1.5.7.RELEASE'
+    [...]
+    testCompile 'junit:junit:4.12'
+}
+```
+
+Starter Web? O projeto Spring Boot é na verdade um projeto *guarda-chuva*. Uma das coisas
+que ele nos proporciona são os chamados *starter POMs*, que nada mais são do que
+aglomerados de dependências que fazem com que nosso projeto esteja preparado para atender
+determinado nicho arquitetural, por exemplo o *starter-web* deixa nosso projeto pronto
+para ser usado como uma API RESTful ou aplicação MVC tradicional, enquanto o
+*starter-batch* prepara um executor de rotinas em background.
+
+POM? POM significa *Project Object Model*, uma terminologia do `Maven`, gerenciador de
+build antecessor ao `Gradle`. Caso essa ferramenta não seja familiar para o leitor,
+sugiro uma pausa neste ponto e retorno após seguir alguns tutoriais básicos dela.
+
+De onde tiramos o grupo, nome de artefato e versão da dependência? Uma maneira bem
+bacana de usar sempre versões atualizadas é obtê-la de um site como o
+https://mvnrepository.com. Sempre bom tomar cuidado para não usar bibliotecas antigas,
+ou seja sem build recente, e também fique de olho no discriminante da versão, evite
+usar bibliotecas com sufixo *SNAPSHOT* (isso significa que é uma build de desenvolvimento) ou *MXXX* (provavelmente também não é uma build estável, mas depende do projeto). Outro
+ponto importante a ser observado é que o *mvnrepository* agrega diversos repositórios
+distintos e não apenas o repositório central, que é o que normalmente queremos usar.
+
+Vamos executar novamente um `gradle idea` para atualizar os arquivos do nosso IDE. Assim
+as bibliotecas necessárias para o `starter-web` estarão disponíveis no *class path*:
+
+```
+gradle idea
+```
+
+Agora que temos o projeto criado, vamos criar a classe principal de toda aplicação
+que usa Spring Boot, a classe `XXXXXXApplication`. Crie uma classe Java chamada
+`FilmesApplication` no pacote `com.opensanca.trilharest.filmes`:
+
+```java
+package com.opensanca.trilharest.filmes;
+
+import org.springframework.boot.SpringApplication;
+
+public class FilmesApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(FilmesApplication.class, args);
+  }
+}
+```
+
+Tente rodar a aplicação. Verá que um erro será disparado parecido com esse:
+
+```
+[...]
+Caused by: org.springframework.context.ApplicationContextException: Unable to start EmbeddedWebApplicationContext due to missing EmbeddedServletContainerFactory bean.
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.getEmbeddedServletContainerFactory(EmbeddedWebApplicationContext.java:189) ~[spring-boot-1.5.7.RELEASE.jar:1.5.7.RELEASE]
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.createEmbeddedServletContainer(EmbeddedWebApplicationContext.java:162) ~[spring-boot-1.5.
+[...]
+```
+
+O que ocorreu aqui é que não habilitamos o *modo opinativo* do Spring Boot, e por padrão
+ele não vai tomar nenhuma decisão por nós, nem mesmo qual motor de servlet queremos usar.
+
+Para habilitar o modo opinativo, adicione a anotação `@EnableAutoConfiguration` na classe
+`FilmesApplication`:
+
+```java
+@EnableAutoConfiguration
+public class FilmesApplication {
+```
+
+Rode novamente, agora o container vai subir, mas não temos nada de interessante ainda
+dentro dele. Vamos mudar isso adicionando nosso primeiro `Controller`. Controllers são
+beans gerenciados pelo Spring responsáveis por tratar requisições HTTP.
+
+Nota: a expressão `beans gerenciados pelo Spring` são estranhas para você? Sugiro pausar,
+ler tutoriais básicos de `Spring Core`, `Injeção de Dependência` e `Inversão de Controle`
+(nessa ordem) e depois retomar os estudos.
+
+Crie uma classe chamada `HelloController` no pacote
+`com.opensanca.trilharest.filmes.hello`:
+
+```java
+package com.opensanca.trilharest.filmes.hello;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+@RequestMapping("/hello")
+public class HelloController {
+
+  @RequestMapping(path="", method={RequestMethod.GET})
+  public String hello() {
+    return "Olá!";
+  }
+
+}
+```
+
+Rode novamente a aplicação, e tente acessar a URL `http://localhost:8080/hello`. Nenhum
+sucesso, certo? Vamos lá, existem dois motivos para isso:
+
+Motivo nº 1: o Spring não está configurado para escanear automaticamente o class path
+atrás de beans. Neste momento ele nem tomou conhecimento da classe `HelloController`.
+Isso é evidenciado no log, repare que não existe linha mostrando o bind do controller
+no caminho `/hello`:
+
+```
+[...]
+2017-10-16 17:43:42.159  INFO 17389 --- [           main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@51b279c9: startup date [Mon Oct 16 17:43:40 BRST 2017]; root of context hierarchy
+2017-10-16 17:43:42.212  INFO 17389 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public org.springframework.web.servlet.ModelAndView org.springframework.boot.autoconfigure.web.BasicErrorController.errorHtml(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2017-10-16 17:43:42.213  INFO 17389 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> org.springframework.boot.autoconfigure.web.BasicErrorController.error(javax.servlet.http.HttpServletRequest)
+2017-10-16 17:43:42.242  INFO 17389 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-10-16 17:43:42.242  INFO 17389 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-10-16 17:43:42.282  INFO 17389 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-10-16 17:43:42.457  INFO 17389 --- [           main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2017-10-16 17:43:42.521  INFO 17389 --- [           main] s.b.c.e.t.TomcatEmbeddedServletContainer : Tomcat started on port(s): 8080 (http)
+2
+[...]
+```
+
+Para resolver este ponto basta anotarmos a classe `FilmesApplication` com a anotação
+`@ComponentScan`. Na sua configuração default, ela varrerá o pacote
+`com.opensanca.trilharest.filmes` e todos os subpacotes atrás de beans:
+
+```java
+@EnableAutoConfiguration
+@ComponentScan
+public class FilmesApplication {
+```
+
+Suba a aplicação novamente, agora existe no log um indicativo de que o controller foi
+acoplado ao caminho `/hello`:
+
+```
+[...]
+2017-10-16 17:46:01.550  INFO 17581 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/hello],methods=[GET]}" onto public java.lang.String com.opensanca.trilharest.filmes.hello.HelloController.hello()
+[...]
+```
+
+Nota: existe uma anotação de conveniência do Spring Boot chamada `@SpringBootApplication`
+que já habilita a configuração automática e o scan automático de beans.
+
+Infelizmente ainda não conseguimos obter a resposta esperada acessando a URL `http://localhost:8080/hello`.
+
+Motivo nº 2: o Spring MVC (responsável pelos controllers que estamos definindo) é na
+realidade pensado como um framework MVC e não como um framework para APIs de dados,
+e isso significa que ele espera, por padrão, que a String retornada pela `action`
+(no nosso caso o método `hello`) reflita um `arquivo de template`. Mas nem temos um
+motor de template (`Velocity`, `Freemarker` etc) no projeto! Sim, infelizmente os logs
+não ajudam mas é isso que está acontecendo. Mas como resolver? Vamos instruir ao
+Spring MVC que ele deve tratar o retorno da action como uma resposta de texto plano ao
+invés de um caminho de template usando a anotação `@ResponseBody`:
+
+```java
+  @RequestMapping(path="", method={RequestMethod.GET})
+  public @ResponseBody String hello() {
+    return "Olá!";
+  }
+```
+
+Agora sim, ao acessar a URL mencionada, veremos `Olá!` na tela do navegador.
+
+Colocar `@ResponseBody` em todos nossos métodos é no mínimo entediante, e com certeza
+vai gerar frustração com os esquecimentos frequentes. Para evitar isso existe uma
+solução melhor: vamos anotar nosso controller com a anotação `@RestController` ao
+invés da anotação `@Controller`, que além de outras coisas já configura por default
+todas as actions com a mesma semântica da anotação `@ResponseBody`. Nosso controller
+ficará assim:
+
+```java
+package com.opensanca.trilharest.filmes.hello;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/hello")
+public class HelloController {
+
+  @RequestMapping(path="", method={RequestMethod.GET})
+  public String hello() {
+    return "Olá!";
+  }
+
+}
+```
+
+Existe uma outra pequena otimização que podemos fazer. Como a semântica `@RequestMapping`
+com um único método é bem comum, os desenvolvedores do Spring MVC decidiram fornecer
+anotações de atalho para isso, especificamente são as anotações `@GetMapping`,
+`@PostMapping`, etc. Vamos utilizar a `@GetMapping` para deixar nosso controller mais
+limpo:
+
+```java
+package com.opensanca.trilharest.filmes.hello;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/hello")
+public class HelloController {
+
+  @GetMapping
+  public String hello() {
+    return "Olá!";
+  }
+
+}
+```
+
+
