@@ -350,4 +350,5 @@ public class HelloController {
 }
 ```
 
-
+E assim finalizamos nosso `Hello, world!` com Spring Boot.
+[Clique aqui](02_agora_sim_um_pouco_de_teoria.md) para ir para o próximo tópico.
