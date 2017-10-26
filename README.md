@@ -25,3 +25,5 @@ Também será necessário possuir contas nos seguintes serviços:
 1. [Hora de especificar!](03_hora_de_especificar.md)
 1. [Versionando nosso código no GitHub](04_versionando_no_github.md)
 1. [Desenvolvendo uma versão mocada](05_desenvolvendo_uma_versao_mocada.md)
+1. [Vamos falar sobre DevOps](06_devops.md)
+1. [Usando Swagger para documentar nossa API](07_swagger.md)
