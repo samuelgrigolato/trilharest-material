@@ -55,14 +55,10 @@ public class FilmesRepositoryJPA implements FilmesRepository {
       LocalDate referencia) {
 
     CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+
     CriteriaQuery<Filme> criteriaSeletora = cb.createQuery(Filme.class);
     Root<Filme> raizSeletora = criteriaSeletora.from(Filme.class);
-    criteriaSeletora.where(cb.or(
-        cb.isNull(raizSeletora.get("inicioExibicao")),
-        cb.isNull(raizSeletora.get("fimExibicao")),
-        cb.and(cb.lessThanOrEqualTo(raizSeletora.get("inicioExibicao"), referencia),
-               cb.lessThanOrEqualTo(raizSeletora.get("fimExibicao"), referencia))
-    ));
+    criteriaSeletora.where(construirPredicadoEmExibicao(referencia, cb, raizSeletora));
     Query querySeletora = this.entityManager.createQuery(criteriaSeletora);
     querySeletora.setFirstResult((parametrosDePaginacao.getPagina() - 1) * parametrosDePaginacao.getTamanhoDaPagina());
     querySeletora.setMaxResults(parametrosDePaginacao.getTamanhoDaPagina());
@@ -70,12 +66,7 @@ public class FilmesRepositoryJPA implements FilmesRepository {
     CriteriaQuery<Long> criteriaContadora = cb.createQuery(Long.class);
     Root<Filme> raizContadora = criteriaContadora.from(Filme.class);
     criteriaContadora.select(cb.count(cb.literal(1)));
-    criteriaContadora.where(cb.or(
-        cb.isNull(raizContadora.get("inicioExibicao")),
-        cb.isNull(raizContadora.get("fimExibicao")),
-        cb.and(cb.lessThanOrEqualTo(raizContadora.get("inicioExibicao"), referencia),
-            cb.lessThanOrEqualTo(raizContadora.get("fimExibicao"), referencia))
-    ));
+    criteriaContadora.where(construirPredicadoEmExibicao(referencia, cb, raizContadora));
     Query queryContadora = this.entityManager.createQuery(criteriaContadora);
 
     Pagina<Filme> pagina = new Pagina<>();
@@ -89,6 +80,10 @@ public class FilmesRepositoryJPA implements FilmesRepository {
     return this.entityManager.find(Filme.class, id);
   }
 
+  private Predicate construirPredicadoEmExibicao(LocalDate referencia, CriteriaBuilder cb,
+      Root<Filme> raiz) {
+    return cb.between(cb.literal(referencia), raiz.get("inicioExibicao"), raiz.get("fimExibicao"));
+  }
 }
 ```
 
@@ -185,7 +180,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
 @ComponentScan
-@EntityScan(basePackageClasses = {MoviesApplication.class, Jsr310JpaConverters.class})
+@EntityScan(basePackageClasses = {FilmesApplication.class, Jsr310JpaConverters.class})
 public class MoviesApplication {
 ```
 
@@ -260,7 +255,8 @@ databaseChangeLog:
           relativeToChangelogFile: true
 ```
 
-Repare que estamos delegando a migração para um arquivo SQL, vamos criá-lo:
+Repare que estamos delegando a migração para um arquivo SQL, vamos criá-lo no
+caminho `src/main/resources/db/changelog/sqls/0001-migracao-inicial.sql`:
 
 ```sql
 create table filme
@@ -277,7 +273,7 @@ create table filme
 ```
 
 Antes de executar a aplicação não podemos nos esquecer de retirar o `ddl-auto`
-do arquivo `application.properties`.
+do arquivo `application.properties` e dropar a tabela existente.
 
 Vamos adicionar registros equivalentes à versão RAM para testar corretamente:
 
@@ -307,8 +303,8 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface FilmesRepository extends CrudRepository<Filme, UUID> {
 
-    @Query("select f from Filme f where f.inicioExibicao is null or f.fimExibicao is null or (f.inicioExibicao <= ?1 and f.fimExibicao >= ?1)")
-    Page<Filme> buscarPaginaEmExibicao(LocalDate referencia, Pageable pageable);
+  @Query("select f from Filme f where ?1 between f.inicioExibicao and f.fimExibicao")
+  Page<Filme> buscarPaginaEmExibicao(LocalDate referencia, Pageable pageable);
 
 }
 
@@ -338,7 +334,7 @@ Uma coisa bem conveniente aconteceu, como incorporamos as classes de domínio `P
 e `Pageable` do Spring Data, não precisamos mais das classes `Pagina` e
 `ParametrosDePaginacao` no nosso próprio domínio!
 
-Use a seguinte URL para testar: `http://localhost:8080/filmes?page=0&size=3`.
+Use a seguinte URL para testar: `http://localhost:8080/filmes/em-exibicao?page=0&size=2`.
 
 Antes de passar para o próximo passo, vamos dar uma última melhorada no retorno
 da busca por ID. Note que se passar um UUID não existente na base, a API retorna
@@ -370,5 +366,5 @@ public class EntidadeNaoEncontradaException extends RuntimeException {
 }
 ```
 
-E assim acabamos este tópico. [Clique aqui](09_administracao.md) para ir para o próximo
+E assim acabamos este tópico. [Clique aqui](09_heroku_addons.md) para ir para o próximo
 assunto.

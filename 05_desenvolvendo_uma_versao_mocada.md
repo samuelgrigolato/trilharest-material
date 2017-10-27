@@ -253,6 +253,9 @@ Antes de criarmos a classe de repositório, vamos criar um construtor na classe 
 que nos será útil para criar a massa de dados de teste:
 
 ```java
+public Filme() {
+}
+
 public Filme(UUID id, String nome, String sinopse, Duration duracao,
     LocalDate inicioExibicao, LocalDate fimExibicao) {
   this.id = id;
@@ -263,6 +266,9 @@ public Filme(UUID id, String nome, String sinopse, Duration duracao,
   this.fimExibicao = fimExibicao;
 }
 ```
+
+Note que também criamos um construtor default, pois ele será
+necessário no futuro quando integrarmos o Spring Data no projeto.
 
 Agora crie uma classe chamada `FilmesRepositoryRAM` no pacote
 `com.opensanca.trilharest.filmes.filmes`:

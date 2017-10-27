@@ -29,3 +29,4 @@ Também será necessário possuir contas nos seguintes serviços:
 1. [Vamos falar sobre DevOps](06_devops.md)
 1. [Usando Swagger para documentar nossa API](07_swagger.md)
 1. [Substituindo o mecanismo de armazenamento](08_armazenamento.md)
+1. [Heroku Add-ons](09_heroku_addons.md)
