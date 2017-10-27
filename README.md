@@ -12,6 +12,7 @@ Para seguir na trilha é necessário possuir os seguintes softwares instalados:
 * [Gradle](https://gradle.org/)
 * [Ruby com RubyGems](https://www.ruby-lang.org/en/) - precisamos disso para conseguir instalar o
 Travis CLI.
+* [PostgreSQL 9+](https://www.postgresql.org/)
 
 Também será necessário possuir contas nos seguintes serviços:
 
@@ -27,3 +28,4 @@ Também será necessário possuir contas nos seguintes serviços:
 1. [Desenvolvendo uma versão mocada](05_desenvolvendo_uma_versao_mocada.md)
 1. [Vamos falar sobre DevOps](06_devops.md)
 1. [Usando Swagger para documentar nossa API](07_swagger.md)
+1. [Substituindo o mecanismo de armazenamento](08_armazenamento.md)
