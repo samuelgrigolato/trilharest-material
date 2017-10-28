@@ -1,6 +1,7 @@
 # Material da trilha RESTful com Java
 
-Este repositório contém o material da trilha.
+Este repositório contém o material ministrado na trilha, disponibilizado de forma a
+permitir que outras pessoas possam seguir o conteúdo por conta própria.
 
 ## Pré-requisitos
 
@@ -30,3 +31,4 @@ Também será necessário possuir contas nos seguintes serviços:
 1. [Usando Swagger para documentar nossa API](07_swagger.md)
 1. [Substituindo o mecanismo de armazenamento](08_armazenamento.md)
 1. [Heroku Add-ons](09_heroku_addons.md)
+1. [Especificando e implementando os endpoints de administração](10_administracao.md)
