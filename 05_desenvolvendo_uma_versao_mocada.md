@@ -852,3 +852,5 @@ Note que é bem provável que chegaríamos na mesma solução sem TDD, a diferen
 aqui é no futuro, quando tivermos que trocar uma dessas regras: a suíte de teste vai
 ser valiosa na identificação de impactos não considerados ou defeitos de regressão
 que por ventura adicionaremos no projeto.
+
+E assim terminamos a versão mocada. [Vamos falar agora sobre DevOps](06_devops.md).
