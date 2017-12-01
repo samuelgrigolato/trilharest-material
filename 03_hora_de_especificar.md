@@ -9,7 +9,7 @@ no nosso sistema de gestão de cinema:
 Independente do processo de desenvolvimento (cascata, iterativo, ágil), é muito importante
 termos um próximo passo atingível em mente, para não desviarmos o foco.
 
-Como estamos objetivando uma API de dados, e o desenvolvimento ocorrerá do front-end
+Como estamos objetivando uma API de dados, e o desenvolvimento do front-end
 ocorrerá de maneira separada (ou seja, com outra equipe) do back-end, o mais importante
 dessa primeira reunião de especificação é definir a interface entre as equipes, justamente
 os *endpoints* da API REST. Assim as equipes podem seguir de maneira paralela, mas claro
