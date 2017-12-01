@@ -34,3 +34,4 @@ Também será necessário possuir contas nos seguintes serviços:
 1. [Especificando e implementando os endpoints de administração](10_administracao.md)
 1. [Autenticação e autorização](11_autenticacao_autorizacao.md)
 1. [Consumindo uma API de terceiro](12_consumindo_api_terceiro.md)
+1. [Análise de performance com jMeter](13_jmeter.md)
