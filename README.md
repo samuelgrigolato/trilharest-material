@@ -32,3 +32,5 @@ Também será necessário possuir contas nos seguintes serviços:
 1. [Substituindo o mecanismo de armazenamento](08_armazenamento.md)
 1. [Heroku Add-ons](09_heroku_addons.md)
 1. [Especificando e implementando os endpoints de administração](10_administracao.md)
+1. [Autenticação e autorização](11_autenticacao_autorizacao.md)
+1. [Consumindo uma API de terceiro](12_consumindo_api_terceiro.md)
