@@ -61,7 +61,7 @@ jdbc:postgresql://127.0.0.1/filmes?user=postgres&password=123456
 
 Uma outra abordagem seria criar um `perfil` Spring para desenvolvimento (ou para
 produção) e ativá-lo onde apropriado. Para isso, crie um arquivo chamado
-`application-local.properties` do lado do arquivo existente `application.properties`:
+`application-dev.properties` do lado do arquivo existente `application.properties`:
 
 ```
 spring.datasource.url=jdbc:postgresql://127.0.0.1/filmes
