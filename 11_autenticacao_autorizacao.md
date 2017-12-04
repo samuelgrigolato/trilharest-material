@@ -760,9 +760,9 @@ public class SegurancaConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
         auth.inMemoryAuthentication()
-                .withUser("adm1").password("123456memoria").roles("ADMIN")
+                .withUser("adm1").password("123456memoria").authorities("ADMIN")
                 .and()
-                .withUser("user2").password("123456memoria").roles();
+                .withUser("user2").password("123456memoria").authorities();
 
     }
 }
