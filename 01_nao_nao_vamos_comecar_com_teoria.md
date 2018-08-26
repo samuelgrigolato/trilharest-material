@@ -97,7 +97,7 @@ adicionando um plugin para criar automaticamente a configuração do nosso IDE, 
 arquivo `build.gradle`:
 
 ```groovy
-apply plugin “idea”
+apply plugin: 'idea'
 ```
 
 Essa linha pode ficar logo abaixo da linha que aplica o plugin `java`. Para os que
